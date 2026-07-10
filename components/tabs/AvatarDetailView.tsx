@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AddButton } from "../AddButton";
 import { languageOptions, ownerOptions, scenarioOptions } from "@/lib/avatarOptions";
 import { scriptLibraryCatalog } from "@/lib/scriptLibraryCatalog";
 import type { AvatarProfile, AvatarScript } from "@/lib/types";
@@ -127,14 +128,7 @@ export function AvatarDetailView({ profile, onBack }: AvatarDetailViewProps) {
         <div className="row between">
           <h2 className="section-title">Script Library</h2>
           <div className="picker-wrap">
-            <button
-              aria-label="Add from library"
-              className="button icon-button primary"
-              onClick={() => setShowScriptPicker((open) => !open)}
-              type="button"
-            >
-              +
-            </button>
+            <AddButton label="Add from library" onClick={() => setShowScriptPicker((open) => !open)} />
             {showScriptPicker && (
               <div className="picker-panel">
                 <div className="picker-header">

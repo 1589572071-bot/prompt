@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { proactiveStrategies, stateMachine } from "@/lib/mockData";
+import { proactiveStrategies as initialProactiveStrategies, stateMachine } from "@/lib/mockData";
+import { createDraftProactiveStrategy } from "@/lib/createDrafts";
+import type { ProactiveStrategy } from "@/lib/types";
+import { AddButton } from "../AddButton";
 import { ProactiveDetailView } from "./ProactiveDetailView";
 
 function getStateName(stateId: string) {
@@ -16,22 +19,33 @@ function textAtomSummary(name: string, sourceType: string, sourceScriptVersion?:
 }
 
 export function ProactiveTab() {
+  const [strategies, setStrategies] = useState<ProactiveStrategy[]>(initialProactiveStrategies);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const filteredStrategies = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return proactiveStrategies;
-    return proactiveStrategies.filter(
+    if (!keyword) return strategies;
+    return strategies.filter(
       (strategy) =>
         strategy.name.toLowerCase().includes(keyword) ||
         strategy.id.toLowerCase().includes(keyword) ||
         getStateName(strategy.applicableStateId).toLowerCase().includes(keyword) ||
         strategy.textAtom.name.toLowerCase().includes(keyword)
     );
-  }, [search]);
+  }, [search, strategies]);
 
-  const editingStrategy = proactiveStrategies.find((strategy) => strategy.id === editingId);
+  const editingStrategy = strategies.find((strategy) => strategy.id === editingId);
+
+  function handleAddStrategy() {
+    const defaultStateId =
+      stateMachine.nodes.find((node) => node.id === "proactive")?.id ??
+      stateMachine.nodes[0]?.id ??
+      "proactive";
+    const draft = createDraftProactiveStrategy(defaultStateId);
+    setStrategies((current) => [...current, draft]);
+    setEditingId(draft.id);
+  }
 
   if (editingStrategy) {
     return (
@@ -50,9 +64,7 @@ export function ProactiveTab() {
           placeholder="Search strategies, states, text atoms"
           value={search}
         />
-        <button className="button primary admin-new-button" type="button">
-          New Strategy
-        </button>
+        <AddButton label="New strategy" onClick={handleAddStrategy} />
       </div>
 
       <div className="admin-table-wrap">

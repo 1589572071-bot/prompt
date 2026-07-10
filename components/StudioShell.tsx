@@ -11,12 +11,12 @@ import { StateTab } from "./tabs/StateTab";
 import { TraceTab } from "./tabs/TraceTab";
 
 const tabs: Array<{ id: StudioTab; label: string }> = [
-  { id: "base", label: "Global Base" },
-  { id: "avatar", label: "Character Center" },
-  { id: "state", label: "State Orchestration" },
-  { id: "proactive", label: "Proactive Strategy" },
-  { id: "sandbox", label: "Sandbox Simulation" },
-  { id: "trace", label: "Online Traceability" }
+  { id: "base", label: "Base" },
+  { id: "avatar", label: "Characters" },
+  { id: "state", label: "States" },
+  { id: "proactive", label: "Proactive" },
+  { id: "sandbox", label: "Sandbox" },
+  { id: "trace", label: "Tracing" }
 ];
 
 function showSecondaryRail(tab: StudioTab) {
@@ -66,11 +66,6 @@ export function StudioShell() {
             <option>Staging</option>
             <option>Production</option>
           </select>
-          <span className={`pill ${selectedAvatar.status === "Published" ? "success" : ""}`}>
-            {selectedAvatar.status}
-          </span>
-          <button className="button">Save Draft</button>
-          <button className="button primary">Merge / Publish</button>
         </div>
       </header>
 
@@ -98,7 +93,7 @@ export function StudioShell() {
               onClick={() => setSelectedBaseAssetId("system-core")}
               type="button"
             >
-              <strong>System Core</strong>
+              <strong>Core</strong>
             </button>
 
             <button
@@ -106,7 +101,7 @@ export function StudioShell() {
               onClick={() => setSelectedBaseAssetId("biz-strategies")}
               type="button"
             >
-              <strong>Business Strategies</strong>
+              <strong>Strategies</strong>
             </button>
           </div>
         </aside>

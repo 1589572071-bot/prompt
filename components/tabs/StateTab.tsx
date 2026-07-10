@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { bizStrategies, proactiveStrategies, stateMachine } from "@/lib/mockData";
+import { createDraftStateEdge, createDraftStateNode } from "@/lib/createDrafts";
 import { interruptBufferPolicies } from "@/lib/stateOptions";
-import type { StateNode } from "@/lib/types";
+import type { StateEdge, StateNode } from "@/lib/types";
+import { AddButton } from "../AddButton";
 import { StateEdgeDetailView } from "./StateEdgeDetailView";
 import { StateNodeDetailView, summarizeStrategies, useStateTypeOptions } from "./StateNodeDetailView";
 
@@ -17,13 +19,13 @@ function getNodeName(nodes: StateNode[], nodeId: string) {
 }
 
 export function StateTab() {
+  const [nodes, setNodes] = useState<StateNode[]>(stateMachine.nodes);
+  const [edges, setEdges] = useState<StateEdge[]>(stateMachine.edges);
   const [search, setSearch] = useState("");
   const [transitionSearch, setTransitionSearch] = useState("");
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
 
-  const nodes = stateMachine.nodes;
-  const edges = stateMachine.edges;
   const stateTypeOptions = useStateTypeOptions(nodes, stateMachine.customTypes);
 
   const filteredNodes = useMemo(() => {
@@ -56,6 +58,19 @@ export function StateTab() {
   const editingEdge = edges.find((edge) => edge.id === editingEdgeId);
   const editingEdgeFrom = editingEdge ? nodes.find((node) => node.id === editingEdge.from) : undefined;
   const editingEdgeTo = editingEdge ? nodes.find((node) => node.id === editingEdge.to) : undefined;
+
+  function handleAddState() {
+    const draft = createDraftStateNode(nodes);
+    setNodes((current) => [...current, draft]);
+    setEditingNodeId(draft.id);
+  }
+
+  function handleAddTransition() {
+    if (!nodes.length) return;
+    const draft = createDraftStateEdge(nodes);
+    setEdges((current) => [...current, draft]);
+    setEditingEdgeId(draft.id);
+  }
 
   if (editingNode) {
     return (
@@ -93,9 +108,7 @@ export function StateTab() {
           placeholder="Search states"
           value={search}
         />
-        <button className="button primary admin-new-button" type="button">
-          New State
-        </button>
+        <AddButton label="New state" onClick={handleAddState} />
       </div>
 
       <div className="admin-table-wrap">
@@ -152,9 +165,7 @@ export function StateTab() {
           placeholder="Search transitions"
           value={transitionSearch}
         />
-        <button className="button primary admin-new-button" type="button">
-          New Transition
-        </button>
+        <AddButton label="New transition" onClick={handleAddTransition} />
       </div>
 
       <div className="admin-table-wrap">

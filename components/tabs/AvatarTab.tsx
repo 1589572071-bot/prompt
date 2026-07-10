@@ -1,25 +1,35 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { avatarProfiles } from "@/lib/mockData";
+import { avatarProfiles as initialAvatars } from "@/lib/mockData";
+import { createDraftAvatar } from "@/lib/createDrafts";
+import type { AvatarProfile } from "@/lib/types";
+import { AddButton } from "../AddButton";
 import { AvatarDetailView } from "./AvatarDetailView";
 
 export function AvatarTab() {
+  const [avatars, setAvatars] = useState<AvatarProfile[]>(initialAvatars);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const filteredAvatars = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return avatarProfiles;
-    return avatarProfiles.filter(
+    if (!keyword) return avatars;
+    return avatars.filter(
       (avatar) =>
         avatar.name.toLowerCase().includes(keyword) ||
         avatar.id.toLowerCase().includes(keyword) ||
         avatar.personaLabel.toLowerCase().includes(keyword)
     );
-  }, [search]);
+  }, [avatars, search]);
 
-  const editingProfile = avatarProfiles.find((avatar) => avatar.id === editingId);
+  const editingProfile = avatars.find((avatar) => avatar.id === editingId);
+
+  function handleAddAvatar() {
+    const draft = createDraftAvatar(avatars.length);
+    setAvatars((current) => [...current, draft]);
+    setEditingId(draft.id);
+  }
 
   if (editingProfile) {
     return <AvatarDetailView key={editingProfile.id} profile={editingProfile} onBack={() => setEditingId(null)} />;
@@ -36,9 +46,7 @@ export function AvatarTab() {
           placeholder="Search avatars"
           value={search}
         />
-        <button className="button primary admin-new-button" type="button">
-          New Avatar
-        </button>
+        <AddButton label="New avatar" onClick={handleAddAvatar} />
       </div>
 
       <div className="admin-table-wrap">

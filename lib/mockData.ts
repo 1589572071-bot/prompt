@@ -21,8 +21,8 @@ export const systemBase: SystemBase = {
 };
 
 export const avatarProfile: AvatarProfile = {
-  id: "avatar-serena",
-  name: "Serena",
+  id: "avatar-jennie",
+  name: "Jennie",
   version: "v2.3",
   owner: "Strategy PM",
   status: "Published",
@@ -42,7 +42,7 @@ export const avatarProfile: AvatarProfile = {
   defaultAppearance:
     "A young East Asian woman with long black side-parted hair, natural makeup, wearing a stylish dark-brown dress with red polka dots, black ankle boots, and a slim silver wristband, standing relaxed with confident body language.",
   persona:
-    "You are Serena, a stylish and approachable live-stream host who helps viewers explore outfits and share light moments.",
+    "You are Jennie, a stylish and approachable live-stream host who helps viewers explore outfits and share light moments.",
   temperament: [
     "Calm but focused",
     "Observant rather than noisy",
@@ -248,7 +248,7 @@ export const bizStrategies: BizStrategy[] = [
 ];
 
 export const stateMachine: StateMachine = {
-  id: "state-serena-main",
+  id: "state-jennie-main",
   version: "v1.1",
   customTypes: ["Product Comparison", "Support Q&A", "Size Recommendation"],
   nodes: [
@@ -372,8 +372,8 @@ export const traceSnapshots: TraceSnapshot[] = [
     sessionId: "sess_8f2d901a",
     turnId: "turn_0005",
     turnIndex: 5,
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     userId: "user_9274628190",
     stateNodeId: "interaction",
     environment: "Production",
@@ -390,8 +390,8 @@ export const traceSnapshots: TraceSnapshot[] = [
     sessionId: "sess_8f2d901a",
     turnId: "turn_0006",
     turnIndex: 6,
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     userId: "user_9274628190",
     stateNodeId: "interaction",
     environment: "Production",
@@ -408,8 +408,8 @@ export const traceSnapshots: TraceSnapshot[] = [
     sessionId: "sess_8f2d901a",
     turnId: "turn_0007",
     turnIndex: 7,
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     userId: "user_9274628190",
     stateNodeId: "interaction",
     environment: "Production",
@@ -426,8 +426,8 @@ export const traceSnapshots: TraceSnapshot[] = [
     sessionId: "sess_8f2d901a",
     turnId: "turn_0008",
     turnIndex: 8,
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     userId: "user_9274628190",
     stateNodeId: "idle",
     environment: "Production",
@@ -462,8 +462,8 @@ export const sandboxCases: SandboxCase[] = [
   {
     id: "sandbox-001",
     name: "Try-on Interaction",
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     stateNodeId: "interaction",
     stateNodeName: "User Interaction",
     userInput: "Try on the first item.",
@@ -476,8 +476,8 @@ export const sandboxCases: SandboxCase[] = [
   {
     id: "sandbox-002",
     name: "Idle Timeout Prompt",
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     stateNodeId: "idle",
     stateNodeName: "Idle Standby",
     userInput: "No input timeout",
@@ -490,8 +490,8 @@ export const sandboxCases: SandboxCase[] = [
   {
     id: "sandbox-003",
     name: "Promo Proactive Check",
-    avatarId: "avatar-serena",
-    avatarName: "Serena",
+    avatarId: "avatar-jennie",
+    avatarName: "Jennie",
     stateNodeId: "proactive",
     stateNodeName: "Proactive Active",
     userInput: "Show me the discount details.",

@@ -175,6 +175,35 @@ export interface TraceSnapshot {
   createdAt: string;
 }
 
+export type TraceSpanKind =
+  | "turn"
+  | "state_routing"
+  | "prompt_assembly"
+  | "prompt_layer"
+  | "model_inference"
+  | "action_parse";
+
+export interface TraceSpan {
+  id: string;
+  traceId: string;
+  parentId: string | null;
+  name: string;
+  kind: TraceSpanKind;
+  durationMs: number;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  children: TraceSpan[];
+}
+
+export interface FlatTraceSpan extends TraceSpan {
+  traceName: string;
+  sessionId: string;
+  turnId: string;
+  timestamp: string;
+  spanPath: string;
+}
+
 export interface SandboxCase {
   id: string;
   name: string;

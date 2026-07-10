@@ -1,25 +1,35 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { sandboxCases } from "@/lib/mockData";
+import { sandboxCases as initialSandboxCases } from "@/lib/mockData";
+import { createDraftSandboxCase } from "@/lib/createDrafts";
+import type { SandboxCase } from "@/lib/types";
+import { AddButton } from "../AddButton";
 import { SandboxDetailView } from "./SandboxDetailView";
 
 export function SandboxTab() {
+  const [cases, setCases] = useState<SandboxCase[]>(initialSandboxCases);
   const [search, setSearch] = useState("");
   const [viewingId, setViewingId] = useState<string | null>(null);
 
   const filteredCases = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return sandboxCases;
-    return sandboxCases.filter(
+    if (!keyword) return cases;
+    return cases.filter(
       (item) =>
         item.name.toLowerCase().includes(keyword) ||
         item.avatarName.toLowerCase().includes(keyword) ||
         item.userInput.toLowerCase().includes(keyword)
     );
-  }, [search]);
+  }, [cases, search]);
 
-  const viewingCase = sandboxCases.find((item) => item.id === viewingId);
+  const viewingCase = cases.find((item) => item.id === viewingId);
+
+  function handleAddCase() {
+    const draft = createDraftSandboxCase(cases.length);
+    setCases((current) => [...current, draft]);
+    setViewingId(draft.id);
+  }
 
   if (viewingCase) {
     return <SandboxDetailView key={viewingCase.id} onBack={() => setViewingId(null)} sandboxCase={viewingCase} />;
@@ -36,9 +46,7 @@ export function SandboxTab() {
           placeholder="Search sandbox cases"
           value={search}
         />
-        <button className="button primary admin-new-button" type="button">
-          New Simulation
-        </button>
+        <AddButton label="New simulation" onClick={handleAddCase} />
       </div>
 
       <div className="admin-table-wrap">

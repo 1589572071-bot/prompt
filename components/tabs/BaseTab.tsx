@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { bizStrategies, systemBase } from "@/lib/mockData";
+import { bizStrategies as initialBizStrategies, systemBase } from "@/lib/mockData";
+import { createDraftBizStrategy } from "@/lib/createDrafts";
+import type { BizStrategy } from "@/lib/types";
+import { AddButton } from "../AddButton";
 import { BizStrategyDetailView } from "./BizStrategyDetailView";
 import { SystemCoreDetailView } from "./SystemCoreDetailView";
 
@@ -17,21 +20,28 @@ function truncate(text: string, max = 48) {
 }
 
 export function BaseTab({ selectedId }: BaseTabProps) {
+  const [strategies, setStrategies] = useState<BizStrategy[]>(initialBizStrategies);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const filteredStrategies = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return bizStrategies;
-    return bizStrategies.filter(
+    if (!keyword) return strategies;
+    return strategies.filter(
       (strategy) =>
         strategy.name.toLowerCase().includes(keyword) ||
         strategy.id.toLowerCase().includes(keyword) ||
         strategy.type.toLowerCase().includes(keyword)
     );
-  }, [search]);
+  }, [search, strategies]);
 
-  const editingStrategy = bizStrategies.find((strategy) => strategy.id === editingId);
+  const editingStrategy = strategies.find((strategy) => strategy.id === editingId);
+
+  function handleAddStrategy() {
+    const draft = createDraftBizStrategy();
+    setStrategies((current) => [...current, draft]);
+    setEditingId(draft.id);
+  }
 
   if (selectedId === "system-core") {
     if (editingId === "system-core") {
@@ -115,9 +125,7 @@ export function BaseTab({ selectedId }: BaseTabProps) {
           placeholder="Search strategies"
           value={search}
         />
-        <button className="button primary admin-new-button" type="button">
-          New Strategy Pack
-        </button>
+        <AddButton label="New strategy pack" onClick={handleAddStrategy} />
       </div>
 
       <div className="admin-table-wrap">
