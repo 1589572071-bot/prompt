@@ -106,6 +106,27 @@ export function TraceListLayout({ traces, onOpenTrace }: TraceListLayoutProps) {
         </div>
       </div>
 
+      <div className="grid three" style={{ marginBottom: 16 }}>
+        <div className="card soft">
+          <div className="row between">
+            <strong>Idle</strong>
+            <span className="pill">No task strategy</span>
+          </div>
+        </div>
+        <div className="card soft">
+          <div className="row between">
+            <strong>Proactive</strong>
+            <span className="pill success">Proactive strategy</span>
+          </div>
+        </div>
+        <div className="card soft">
+          <div className="row between">
+            <strong>Interaction</strong>
+            <span className="pill success">Intent strategy or none</span>
+          </div>
+        </div>
+      </div>
+
       <div className={`trace-layout ${filtersOpen ? "" : "filters-collapsed"}`}>
         {filtersOpen && <TraceFilterSidebar filters={filters} onChange={setFilters} traces={traces} />}
 

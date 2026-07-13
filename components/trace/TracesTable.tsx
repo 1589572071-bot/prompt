@@ -9,6 +9,8 @@ export type TraceColumnKey =
   | "bookmark"
   | "timestamp"
   | "name"
+  | "state"
+  | "strategy"
   | "input"
   | "output"
   | "observations";
@@ -18,6 +20,8 @@ export const allTraceColumns: TraceColumnKey[] = [
   "bookmark",
   "timestamp",
   "name",
+  "state",
+  "strategy",
   "input",
   "output",
   "observations"
@@ -49,6 +53,8 @@ export function TracesTable({
             {show("bookmark") && <th className="trace-col-star" />}
             {show("timestamp") && <th className="trace-col-timestamp">Timestamp</th>}
             {show("name") && <th className="trace-col-name">Name</th>}
+            {show("state") && <th>State</th>}
+            {show("strategy") && <th>Strategy Decision</th>}
             {show("input") && <th className="trace-col-json">Input</th>}
             {show("output") && <th className="trace-col-json trace-col-output">Output</th>}
             {show("observations") && <th className="trace-col-obs">Observation Levels</th>}
@@ -83,6 +89,18 @@ export function TracesTable({
                     <button className="trace-link" onClick={() => onOpenTrace(trace.id)} type="button">
                       {traceDisplayName(trace.avatarName, trace.turnIndex)}
                     </button>
+                  </td>
+                )}
+                {show("state") && (
+                  <td>
+                    <span className="tag tag-blue">{trace.stateNode}</span>
+                  </td>
+                )}
+                {show("strategy") && (
+                  <td>
+                    <span className={`pill ${trace.strategy === "None" ? "" : "success"}`}>
+                      {trace.strategy === "None" ? "No task strategy" : trace.strategy}
+                    </span>
                   </td>
                 )}
                 {show("input") && (

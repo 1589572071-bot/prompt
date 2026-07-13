@@ -3,11 +3,17 @@
 import { useMemo, useState } from "react";
 import { sandboxCases as initialSandboxCases } from "@/lib/mockData";
 import { createDraftSandboxCase } from "@/lib/createDrafts";
+import { renderPrompt } from "@/lib/promptRenderer";
+import type { OrchestrationConfig } from "@/lib/runtimeConfig";
 import type { SandboxCase } from "@/lib/types";
 import { AddButton } from "../AddButton";
 import { SandboxDetailView } from "./SandboxDetailView";
 
-export function SandboxTab() {
+interface SandboxTabProps {
+  config: OrchestrationConfig;
+}
+
+export function SandboxTab({ config }: SandboxTabProps) {
   const [cases, setCases] = useState<SandboxCase[]>(initialSandboxCases);
   const [search, setSearch] = useState("");
   const [viewingId, setViewingId] = useState<string | null>(null);
@@ -23,6 +29,28 @@ export function SandboxTab() {
     );
   }, [cases, search]);
 
+  const liveCaseMetrics = useMemo(() => {
+    return new Map(
+      cases.map((item) => {
+        const result = renderPrompt({
+          userInput: item.userInput,
+          selectedStateId: item.stateNodeId,
+          enableTailReinforcement: item.enableTailReinforcement,
+          avatarId: item.avatarId,
+          config
+        });
+        return [
+          item.id,
+          {
+            totalTokens: result.totalTokens,
+            intent: result.intent,
+            toolCalls: result.toolCalls.map((call) => call.tool)
+          }
+        ] as const;
+      })
+    );
+  }, [cases, config]);
+
   const viewingCase = cases.find((item) => item.id === viewingId);
 
   function handleAddCase() {
@@ -32,7 +60,7 @@ export function SandboxTab() {
   }
 
   if (viewingCase) {
-    return <SandboxDetailView key={viewingCase.id} onBack={() => setViewingId(null)} sandboxCase={viewingCase} />;
+    return <SandboxDetailView config={config} key={viewingCase.id} onBack={() => setViewingId(null)} sandboxCase={viewingCase} />;
   }
 
   return (
@@ -56,6 +84,8 @@ export function SandboxTab() {
               <th>Name</th>
               <th>Avatar</th>
               <th>State Node</th>
+              <th>Expected Intent</th>
+              <th>Expected Tools</th>
               <th>Query</th>
               <th>Tokens</th>
               <th>Tail Reinforcement</th>
@@ -65,7 +95,9 @@ export function SandboxTab() {
             </tr>
           </thead>
           <tbody>
-            {filteredCases.map((item) => (
+            {filteredCases.map((item) => {
+              const live = liveCaseMetrics.get(item.id);
+              return (
               <tr key={item.id}>
                 <td>
                   <div className="cell-title">{item.name}</div>
@@ -73,8 +105,10 @@ export function SandboxTab() {
                 </td>
                 <td>{item.avatarName}</td>
                 <td>{item.stateNodeName}</td>
+                <td>{live?.intent ?? item.expectedIntent}</td>
+                <td className="muted">{(live?.toolCalls ?? item.expectedToolCalls).join(", ") || "none"}</td>
                 <td className="cell-query">{item.userInput}</td>
-                <td>{item.totalTokens}</td>
+                <td>{live?.totalTokens ?? item.totalTokens}</td>
                 <td>{item.enableTailReinforcement ? "On" : "Off"}</td>
                 <td>
                   <span className={`status-badge ${item.status}`}>{item.status}</span>
@@ -91,7 +125,8 @@ export function SandboxTab() {
                   </div>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

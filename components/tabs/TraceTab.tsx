@@ -1,15 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { traceSnapshots } from "@/lib/mockData";
+import { useMemo, useState } from "react";
+import { createTraceSnapshot } from "@/lib/buildTraceRecord";
+import { traceSnapshotSeeds } from "@/lib/seedData";
+import type { OrchestrationConfig } from "@/lib/runtimeConfig";
 import { TraceDetailLayout } from "../trace/TraceDetailLayout";
 import { TraceListLayout } from "../trace/TraceListLayout";
 
-export function TraceTab() {
+interface TraceTabProps {
+  config: OrchestrationConfig;
+}
+
+export function TraceTab({ config }: TraceTabProps) {
   const [viewingTraceId, setViewingTraceId] = useState<string | null>(null);
   const [initialSpanId, setInitialSpanId] = useState<string | null>(null);
 
-  const viewingTrace = traceSnapshots.find((trace) => trace.id === viewingTraceId);
+  const traces = useMemo(
+    () =>
+      traceSnapshotSeeds.map((trace) =>
+        createTraceSnapshot(config.stateMachine.nodes, config.bizStrategies, {
+          ...trace,
+          config
+        })
+      ),
+    [config]
+  );
+
+  const viewingTrace = traces.find((trace) => trace.id === viewingTraceId);
 
   const handleOpenTrace = (traceId: string, spanId?: string) => {
     setViewingTraceId(traceId);
@@ -27,5 +44,5 @@ export function TraceTab() {
     );
   }
 
-  return <TraceListLayout onOpenTrace={handleOpenTrace} traces={traceSnapshots} />;
+  return <TraceListLayout onOpenTrace={handleOpenTrace} traces={traces} />;
 }

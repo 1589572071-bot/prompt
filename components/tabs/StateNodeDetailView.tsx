@@ -1,16 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { stateMachine } from "@/lib/mockData";
 import { interruptBufferPolicies } from "@/lib/stateOptions";
 import type { InterruptBufferPolicyId } from "@/lib/stateOptions";
-import type { StateNode } from "@/lib/types";
+import type { BizStrategy, ProactiveStrategy, StateNode } from "@/lib/types";
 import { StateNodeInspector } from "./StateNodeInspector";
 
 interface StateNodeDetailViewProps {
+  bizStrategies: BizStrategy[];
   node: StateNode;
-  stateTypeOptions: string[];
   onBack: () => void;
+  onNodeChange?: (node: StateNode) => void;
+  proactiveStrategies: ProactiveStrategy[];
+  scenarioStrategyIds: string[];
+  stateTypeOptions: string[];
 }
 
 function getPolicyLabel(node: StateNode) {
@@ -18,15 +21,28 @@ function getPolicyLabel(node: StateNode) {
   return interruptBufferPolicies.find((item) => item.id === policy)?.label ?? policy;
 }
 
-export function StateNodeDetailView({ node, stateTypeOptions, onBack }: StateNodeDetailViewProps) {
+export function StateNodeDetailView({
+  bizStrategies,
+  node,
+  onBack,
+  onNodeChange,
+  proactiveStrategies,
+  scenarioStrategyIds,
+  stateTypeOptions
+}: StateNodeDetailViewProps) {
   const [currentNode, setCurrentNode] = useState(node);
 
+  function emitChange(next: StateNode) {
+    setCurrentNode(next);
+    onNodeChange?.(next);
+  }
+
   function updatePolicy(policy: InterruptBufferPolicyId) {
-    setCurrentNode((current) => ({
-      ...current,
+    emitChange({
+      ...currentNode,
       interruptBufferPolicy: policy,
       interruptLock: policy !== "none"
-    }));
+    });
   }
 
   return (
@@ -34,7 +50,7 @@ export function StateNodeDetailView({ node, stateTypeOptions, onBack }: StateNod
       <div className="row between">
         <div>
           <button className="button" onClick={onBack} type="button">
-            Back to State Orchestration
+            Back to Runtime States
           </button>
           <h1 className="admin-title" style={{ marginTop: 12 }}>
             Edit State · {currentNode.name}
@@ -49,8 +65,11 @@ export function StateNodeDetailView({ node, stateTypeOptions, onBack }: StateNod
 
       <section className="card">
         <StateNodeInspector
+          bizStrategies={bizStrategies}
           node={currentNode}
           onPolicyChange={updatePolicy}
+          proactiveStrategies={proactiveStrategies}
+          scenarioStrategyIds={scenarioStrategyIds}
           stateTypeOptions={stateTypeOptions}
         />
       </section>

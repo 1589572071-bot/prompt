@@ -46,7 +46,6 @@ export function StateEdgeInspector({ edge, fromNode, toNode }: StateEdgeInspecto
             </option>
           ))}
         </select>
-        <p className="hint">Used for transitions such as no-input timeout on idle standby.</p>
       </div>
 
       <div>

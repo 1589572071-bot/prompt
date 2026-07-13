@@ -116,7 +116,7 @@ button {
 
 .workspace {
   display: grid;
-  grid-template-columns: 132px minmax(220px, 22%) minmax(0, 1fr);
+  grid-template-columns: 132px 178px minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -163,7 +163,7 @@ button {
 .rail {
   border-right: 1px solid var(--border);
   background: var(--panel);
-  padding: 18px;
+  padding: 14px 12px;
 }
 
 .main {
@@ -268,19 +268,21 @@ button {
 .asset-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .asset-item {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 11px 12px;
+  border-radius: 12px;
+  padding: 9px 10px;
   background: white;
   text-align: left;
   display: flex;
   align-items: center;
   gap: 10px;
+  font-size: 12px;
+  line-height: 1.25;
 }
 
 .asset-item.active {
@@ -298,17 +300,44 @@ button {
   background: var(--panel-soft);
 }
 
+.rail-compact {
+  padding: 12px 10px;
+}
+
+.rail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rail-group + .rail-group {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
 .rail-group-label {
-  margin: 10px 0 6px;
+  margin: 0 0 2px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 760;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .rail-group-label:first-child {
   margin-top: 0;
+}
+
+.asset-item-compact {
+  padding: 7px 9px;
+  font-size: 12px;
+  font-weight: 620;
+  border-radius: 10px;
+}
+
+.asset-item-compact strong {
+  font-weight: inherit;
 }
 
 .rail-add-button {
@@ -1377,6 +1406,71 @@ button {
   background: #fcfcfd;
 }
 
+.persona-drawer-backdrop,
+.edit-drawer-backdrop {
+  position: fixed;
+  inset: 64px 0 0 132px;
+  z-index: 20;
+  background: rgba(17, 24, 39, 0.28);
+  backdrop-filter: blur(1px);
+}
+
+.persona-drawer,
+.edit-drawer {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(560px, calc(100vw - 156px));
+  overflow: auto;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: -18px 0 44px rgba(22, 34, 64, 0.18);
+}
+
+.edit-drawer.wide {
+  width: min(720px, calc(100vw - 156px));
+}
+
+.edit-drawer-content {
+  padding: 22px;
+}
+
+.persona-drawer-content {
+  padding: 22px;
+}
+
+.persona-drawer-header {
+  position: sticky;
+  top: -22px;
+  z-index: 2;
+  margin: -22px -22px 0;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+.persona-drawer-title {
+  margin: 2px 0 0;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+}
+
+.persona-drawer-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.persona-drawer-close:hover {
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
 @media (max-width: 1180px) {
   .trace-layout,
   .trace-detail-split {
@@ -1387,5 +1481,14 @@ button {
   .trace-span-tree {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .persona-drawer,
+  .edit-drawer {
+    width: min(520px, calc(100vw - 132px));
+  }
+
+  .edit-drawer.wide {
+    width: min(680px, calc(100vw - 132px));
   }
 }

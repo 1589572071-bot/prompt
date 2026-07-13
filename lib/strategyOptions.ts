@@ -1,4 +1,6 @@
 export const strategyTypeOptions = [
+  "Scenario",
+  "Intent",
   "Try-on",
   "Campaign",
   "Product Showcase",

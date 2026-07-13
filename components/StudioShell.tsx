@@ -1,20 +1,23 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { avatarProfiles } from "@/lib/mockData";
+import { createDefaultConfig, applyRuntimePolicies } from "@/lib/runtimeConfig";
+import { systemBaseModuleGroups, systemBaseModules } from "@/lib/systemBaseCatalog";
 import type { Environment, StudioTab } from "@/lib/types";
 import { AvatarTab } from "./tabs/AvatarTab";
 import { BaseTab, type BaseAssetId } from "./tabs/BaseTab";
-import { ProactiveTab } from "./tabs/ProactiveTab";
+import { IdleMotionTab } from "./tabs/IdleMotionTab";
+import { PersonaTab } from "./tabs/PersonaTab";
 import { SandboxTab } from "./tabs/SandboxTab";
-import { StateTab } from "./tabs/StateTab";
+import { StrategyTab } from "./tabs/StrategyTab";
 import { TraceTab } from "./tabs/TraceTab";
 
 const tabs: Array<{ id: StudioTab; label: string }> = [
   { id: "base", label: "Base" },
+  { id: "persona", label: "Personas" },
+  { id: "idleMotion", label: "Idle Motions" },
   { id: "avatar", label: "Characters" },
-  { id: "state", label: "States" },
-  { id: "proactive", label: "Proactive" },
+  { id: "strategy", label: "Strategies" },
   { id: "sandbox", label: "Sandbox" },
   { id: "trace", label: "Tracing" }
 ];
@@ -24,13 +27,14 @@ function showSecondaryRail(tab: StudioTab) {
 }
 
 export function StudioShell() {
+  const [config, setConfig] = useState(createDefaultConfig);
   const [activeTab, setActiveTab] = useState<StudioTab>("avatar");
   const [environment, setEnvironment] = useState<Environment>("Dev");
-  const [selectedAvatarId, setSelectedAvatarId] = useState(avatarProfiles[0].id);
-  const [selectedBaseAssetId, setSelectedBaseAssetId] = useState<BaseAssetId>("system-core");
+  const [selectedAvatarId, setSelectedAvatarId] = useState(config.avatars[0].id);
+  const [selectedBaseAssetId, setSelectedBaseAssetId] = useState<BaseAssetId>("algorithm-rules");
   const selectedAvatar = useMemo(
-    () => avatarProfiles.find((avatar) => avatar.id === selectedAvatarId) ?? avatarProfiles[0],
-    [selectedAvatarId]
+    () => config.avatars.find((avatar) => avatar.id === selectedAvatarId) ?? config.avatars[0],
+    [config.avatars, selectedAvatarId]
   );
 
   return (
@@ -51,7 +55,7 @@ export function StudioShell() {
             value={selectedAvatarId}
             onChange={(event) => setSelectedAvatarId(event.target.value)}
           >
-            {avatarProfiles.map((avatar) => (
+            {config.avatars.map((avatar) => (
               <option key={avatar.id} value={avatar.id}>
                 {avatar.name} {avatar.version}
               </option>
@@ -84,36 +88,90 @@ export function StudioShell() {
         </nav>
 
         {showSecondaryRail(activeTab) && (
-        <aside className="rail">
-          <p className="eyebrow">Assets</p>
-          <h2 className="section-title">{tabs.find((tab) => tab.id === activeTab)?.label}</h2>
+        <aside className="rail rail-compact">
           <div className="asset-list">
-            <button
-              className={`asset-item ${selectedBaseAssetId === "system-core" ? "active" : ""}`}
-              onClick={() => setSelectedBaseAssetId("system-core")}
-              type="button"
-            >
-              <strong>Core</strong>
-            </button>
-
-            <button
-              className={`asset-item ${selectedBaseAssetId === "biz-strategies" ? "active" : ""}`}
-              onClick={() => setSelectedBaseAssetId("biz-strategies")}
-              type="button"
-            >
-              <strong>Strategies</strong>
-            </button>
+            {systemBaseModuleGroups.map((group) => (
+              <div className="rail-group" key={group.id}>
+                <p className="rail-group-label">{group.label}</p>
+                {systemBaseModules
+                  .filter((module) => module.groupId === group.id)
+                  .map((module) => (
+                    <button
+                      className={`asset-item asset-item-compact ${selectedBaseAssetId === module.id ? "active" : ""}`}
+                      key={module.id}
+                      onClick={() => setSelectedBaseAssetId(module.id)}
+                      title={module.name}
+                      type="button"
+                    >
+                      {module.railLabel}
+                    </button>
+                  ))}
+                {group.id === "runtime" && (
+                  <button
+                    className={`asset-item asset-item-compact ${selectedBaseAssetId === "runtime-states" ? "active" : ""}`}
+                    onClick={() => setSelectedBaseAssetId("runtime-states")}
+                    title="Runtime States"
+                    type="button"
+                  >
+                    States
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         </aside>
         )}
 
         <main className="main">
-          {activeTab === "base" && <BaseTab key={selectedBaseAssetId} selectedId={selectedBaseAssetId} />}
-          {activeTab === "avatar" && <AvatarTab />}
-          {activeTab === "state" && <StateTab />}
-          {activeTab === "proactive" && <ProactiveTab />}
-          {activeTab === "sandbox" && <SandboxTab />}
-          {activeTab === "trace" && <TraceTab />}
+          {activeTab === "base" && (
+            <BaseTab
+              key={selectedBaseAssetId}
+              bizStrategies={config.bizStrategies}
+              onPromptsChange={(systemPromptAssets) =>
+                setConfig((current) => applyRuntimePolicies({ ...current, systemPromptAssets }))
+              }
+              onSelect={setSelectedBaseAssetId}
+              onStateMachineChange={(stateMachine) => setConfig((current) => ({ ...current, stateMachine }))}
+              proactiveStrategies={config.proactiveStrategies}
+              prompts={config.systemPromptAssets}
+              selectedId={selectedBaseAssetId}
+              stateMachine={config.stateMachine}
+            />
+          )}
+          {activeTab === "persona" && (
+            <PersonaTab
+              onPromptsChange={(personas) => setConfig((current) => ({ ...current, personas }))}
+              prompts={config.personas}
+            />
+          )}
+          {activeTab === "idleMotion" && (
+            <IdleMotionTab
+              motions={config.idleMotions}
+              onMotionsChange={(idleMotions) => setConfig((current) => ({ ...current, idleMotions }))}
+            />
+          )}
+          {activeTab === "avatar" && (
+            <AvatarTab
+              avatars={config.avatars}
+              idleMotions={config.idleMotions}
+              onAvatarsChange={(avatars) => setConfig((current) => ({ ...current, avatars }))}
+              personas={config.personas}
+            />
+          )}
+          {activeTab === "strategy" && (
+            <StrategyTab
+              bizStrategies={config.bizStrategies}
+              idleMotions={config.idleMotions}
+              onBizStrategiesChange={(bizStrategies) => setConfig((current) => ({ ...current, bizStrategies }))}
+              onProactiveStrategiesChange={(proactiveStrategies) =>
+                setConfig((current) => ({ ...current, proactiveStrategies }))
+              }
+              proactiveStrategies={config.proactiveStrategies}
+              stateMachine={config.stateMachine}
+            />
+          )}
+          {activeTab === "sandbox" && <SandboxTab config={config} />}
+          {activeTab === "trace" && <TraceTab config={config} />}
         </main>
       </div>
     </div>

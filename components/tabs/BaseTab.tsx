@@ -1,131 +1,87 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { bizStrategies as initialBizStrategies, systemBase } from "@/lib/mockData";
-import { createDraftBizStrategy } from "@/lib/createDrafts";
-import type { BizStrategy } from "@/lib/types";
+import { useState } from "react";
+import {
+  getSystemBaseModule,
+  systemBaseModules,
+  type SystemPromptAsset,
+  type SystemBaseModuleId
+} from "@/lib/systemBaseCatalog";
+import type { BizStrategy, ProactiveStrategy, StateMachine } from "@/lib/types";
 import { AddButton } from "../AddButton";
-import { BizStrategyDetailView } from "./BizStrategyDetailView";
+import { RightDrawer } from "../RightDrawer";
+import { StateTab } from "./StateTab";
 import { SystemCoreDetailView } from "./SystemCoreDetailView";
 
-export type BaseAssetId = "system-core" | "biz-strategies";
+export type BaseAssetId = SystemBaseModuleId | "runtime-states";
 
 interface BaseTabProps {
+  bizStrategies: BizStrategy[];
+  onPromptsChange: (prompts: SystemPromptAsset[]) => void;
+  onSelect: (id: BaseAssetId) => void;
+  onStateMachineChange: (stateMachine: StateMachine) => void;
+  proactiveStrategies: ProactiveStrategy[];
+  prompts: SystemPromptAsset[];
   selectedId: BaseAssetId;
+  stateMachine: StateMachine;
 }
 
-function truncate(text: string, max = 48) {
-  if (text.length <= max) return text;
-  return `${text.slice(0, max)}…`;
-}
+export function BaseTab({
+  bizStrategies,
+  onPromptsChange,
+  onSelect,
+  onStateMachineChange,
+  proactiveStrategies,
+  prompts,
+  selectedId,
+  stateMachine
+}: BaseTabProps) {
+  const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
+  const selectedModule = selectedId === "runtime-states" ? systemBaseModules[0] : getSystemBaseModule(selectedId);
+  const promptAssets = selectedId === "runtime-states" ? [] : prompts.filter((prompt) => prompt.moduleId === selectedId);
+  const editingPrompt = promptAssets.find((prompt) => prompt.id === editingPromptId) ?? null;
 
-export function BaseTab({ selectedId }: BaseTabProps) {
-  const [strategies, setStrategies] = useState<BizStrategy[]>(initialBizStrategies);
-  const [search, setSearch] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const filteredStrategies = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-    if (!keyword) return strategies;
-    return strategies.filter(
-      (strategy) =>
-        strategy.name.toLowerCase().includes(keyword) ||
-        strategy.id.toLowerCase().includes(keyword) ||
-        strategy.type.toLowerCase().includes(keyword)
-    );
-  }, [search, strategies]);
-
-  const editingStrategy = strategies.find((strategy) => strategy.id === editingId);
-
-  function handleAddStrategy() {
-    const draft = createDraftBizStrategy();
-    setStrategies((current) => [...current, draft]);
-    setEditingId(draft.id);
+  function handleAddPrompt() {
+    if (selectedId === "runtime-states") return;
+    const now = new Date();
+    const id = `prompt-${selectedId}-${Date.now()}`;
+    const draft: SystemPromptAsset = {
+      id,
+      moduleId: selectedId,
+      name: `new_${selectedId.replace(/-/g, "_")}_prompt`,
+      versions: 1,
+      type: "text",
+      latestVersionCreatedAt: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+        now.getDate()
+      ).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:00`,
+      observations: 0,
+      tags: [],
+      content: "Write prompt content here.",
+      variables: []
+    };
+    onPromptsChange([...prompts, draft]);
+    setEditingPromptId(id);
   }
 
-  if (selectedId === "system-core") {
-    if (editingId === "system-core") {
-      return (
-        <SystemCoreDetailView key="system-core-edit" onBack={() => setEditingId(null)} systemBase={systemBase} />
-      );
-    }
-
+  if (selectedId === "runtime-states") {
     return (
-      <div className="admin-page">
-        <h1 className="admin-title">System Core</h1>
-
-        <div className="admin-toolbar">
-          <input
-            className="input admin-search"
-            disabled
-            placeholder="Search system core"
-            value=""
-          />
-        </div>
-
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Version</th>
-                <th>Status</th>
-                <th>Modules</th>
-                <th>Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <div className="cell-title">Algorithm Iron Rules</div>
-                  <div className="cell-subtitle">{systemBase.id}</div>
-                </td>
-                <td>{systemBase.version}</td>
-                <td>
-                  <span className={`status-badge ${systemBase.status === "Published" ? "active" : "draft"}`}>
-                    {systemBase.status === "Published" ? "active" : systemBase.status.toLowerCase()}
-                  </span>
-                </td>
-                <td>Action Space · Guardrails</td>
-                <td>{systemBase.updatedAt}</td>
-                <td>
-                  <div className="action-group">
-                    <button className="button action-button" onClick={() => setEditingId("system-core")} type="button">
-                      Edit
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
-
-  if (editingStrategy) {
-    return (
-      <BizStrategyDetailView
-        key={editingStrategy.id}
-        onBack={() => setEditingId(null)}
-        strategy={editingStrategy}
+      <StateTab
+        bizStrategies={bizStrategies}
+        onStateMachineChange={onStateMachineChange}
+        proactiveStrategies={proactiveStrategies}
+        stateMachine={stateMachine}
       />
     );
   }
 
   return (
-    <div className="admin-page">
-      <h1 className="admin-title">Business Strategies</h1>
+    <>
+      <div className="admin-page">
+      <h1 className="admin-title">{selectedModule.name}</h1>
 
       <div className="admin-toolbar">
-        <input
-          className="input admin-search"
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search strategies"
-          value={search}
-        />
-        <AddButton label="New strategy pack" onClick={handleAddStrategy} />
+        <input className="input admin-search" disabled placeholder="Search prompts" value="" />
+        <AddButton label="New prompt" onClick={handleAddPrompt} />
       </div>
 
       <div className="admin-table-wrap">
@@ -133,39 +89,27 @@ export function BaseTab({ selectedId }: BaseTabProps) {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Versions</th>
               <th>Type</th>
-              <th>Version</th>
-              <th>Status</th>
-              <th>Visual Anchor</th>
-              <th>Updated</th>
+              <th>Latest Version Created At</th>
+              <th>Number of Observations</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredStrategies.map((strategy) => (
-              <tr key={strategy.id}>
+            {promptAssets.map((prompt) => (
+              <tr key={prompt.id}>
                 <td>
-                  <div className="cell-title">{strategy.name}</div>
-                  <div className="cell-subtitle">{strategy.id}</div>
+                  <div className="cell-title">{prompt.name}</div>
                 </td>
-                <td>
-                  <span className="tag tag-blue">{strategy.type}</span>
-                </td>
-                <td>{strategy.version}</td>
-                <td>
-                  <span className={`status-badge ${strategy.enabled ? "active" : "draft"}`}>
-                    {strategy.enabled ? "enabled" : "disabled"}
-                  </span>
-                </td>
-                <td className="muted">{truncate(strategy.visualAnchor)}</td>
-                <td>{strategy.updatedAt}</td>
+                <td>{prompt.versions}</td>
+                <td>{prompt.type}</td>
+                <td>{prompt.latestVersionCreatedAt}</td>
+                <td>{prompt.observations}</td>
                 <td>
                   <div className="action-group">
-                    <button className="button action-button" onClick={() => setEditingId(strategy.id)} type="button">
+                    <button className="button action-button" onClick={() => setEditingPromptId(prompt.id)} type="button">
                       Edit
-                    </button>
-                    <button className="button action-button danger-outline" type="button">
-                      Delete
                     </button>
                   </div>
                 </td>
@@ -174,6 +118,20 @@ export function BaseTab({ selectedId }: BaseTabProps) {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+
+      {editingPrompt && (
+        <RightDrawer ariaLabel={`Edit ${editingPrompt.name}`} onClose={() => setEditingPromptId(null)}>
+          <SystemCoreDetailView
+            key={editingPrompt.id}
+            onBack={() => setEditingPromptId(null)}
+            onPromptChange={(updated) =>
+              onPromptsChange(prompts.map((prompt) => (prompt.id === updated.id ? updated : prompt)))
+            }
+            prompt={editingPrompt}
+          />
+        </RightDrawer>
+      )}
+    </>
   );
 }

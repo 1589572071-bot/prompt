@@ -1,8 +1,9 @@
 export type StudioTab =
   | "base"
+  | "persona"
+  | "idleMotion"
   | "avatar"
-  | "state"
-  | "proactive"
+  | "strategy"
   | "sandbox"
   | "trace";
 
@@ -11,6 +12,32 @@ export type Environment = "Dev" | "Staging" | "Production";
 export type VersionStatus = "Draft" | "Pending Review" | "Published" | "Deprecated";
 
 export type ScriptSourceType = "manual" | "avatar_script_library";
+
+export interface PersonaPrompt {
+  id: string;
+  name: string;
+  label: string;
+  version: string;
+  status: VersionStatus;
+  styleSummary: string;
+  relationshipSummary: string;
+  speakingStyleTags: string[];
+  forbiddenStyleTags: string[];
+  content: string;
+  updatedAt: string;
+}
+
+export interface IdleMotion {
+  id: string;
+  name: string;
+  version: string;
+  status: VersionStatus;
+  category: "Breathing" | "Gaze" | "Posture" | "Gesture";
+  description: string;
+  actionPrompt: string;
+  chunk: number;
+  updatedAt: string;
+}
 
 export interface AvatarImageAsset {
   headImageUrl: string;
@@ -39,12 +66,15 @@ export interface AvatarProfile {
   language: string;
   studio: string;
   voice: string;
+  ttsUrl: string;
   personaLabel: string;
   sort: number;
   updatedAt: string;
   imageAsset: AvatarImageAsset;
-  defaultAppearance: string;
-  persona: string;
+  visualDescription: string;
+  backgroundDescription: string;
+  personaPromptId: string;
+  idleMotionIds: string[];
   temperament: string[];
   topics: string[];
   speechStyle: {
@@ -68,12 +98,21 @@ export interface SystemBase {
   updatedAt: string;
   actionSpace: string;
   guardrails: string;
+  modelRouting: string;
+  toolCallingPolicy: string;
+  outputContract: string;
+  runtimeDefaults: string;
+  observability: string;
 }
 
 export interface BizStrategy {
   id: string;
   name: string;
   type: string;
+  activationMode: "session" | "intent";
+  intentName?: string;
+  triggerExamples: string[];
+  similarityThreshold?: number;
   enabled: boolean;
   version: string;
   updatedAt: string;
@@ -111,27 +150,25 @@ export interface StateEdge {
 export interface StateMachine {
   id: string;
   version: string;
+  scenarioStrategyIds: string[];
   nodes: StateNode[];
   edges: StateEdge[];
   customTypes: string[];
 }
 
-export interface ProactiveTextAtom {
-  id: string;
-  name: string;
-  text: string;
-  sourceType: ScriptSourceType;
-  sourceScriptId?: string;
-  sourceScriptVersion?: string;
-}
-
 export interface ProactiveStrategy {
   id: string;
   name: string;
-  textAtom: ProactiveTextAtom;
-  actionToken: string;
-  emotionTag: string;
+  /** Guidance for what kinds of proactive openers are allowed — not fixed copy. */
+  directionPrompt: string;
+  /** Optional reference lines for authors; model must not copy verbatim. */
+  examplePhrases: string[];
+  /** Patterns the model should avoid when generating proactive speech. */
+  forbiddenPatterns: string[];
+  /** Visual motion reference for the proactive opener beat (from Idle Motions catalog). */
+  suggestedMotionId: string;
   applicableStateId: string;
+  /** Per-strategy throttle after this strategy fires (runtime orchestration). */
   cooldown: string;
   priority: string;
   enabled: boolean;
@@ -212,6 +249,8 @@ export interface SandboxCase {
   stateNodeId: string;
   stateNodeName: string;
   userInput: string;
+  expectedIntent: string;
+  expectedToolCalls: string[];
   enableTailReinforcement: boolean;
   totalTokens: number;
   status: "ready" | "passed" | "warning";

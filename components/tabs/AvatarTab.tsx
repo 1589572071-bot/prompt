@@ -1,14 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { avatarProfiles as initialAvatars } from "@/lib/mockData";
 import { createDraftAvatar } from "@/lib/createDrafts";
-import type { AvatarProfile } from "@/lib/types";
+import type { AvatarProfile, IdleMotion, PersonaPrompt } from "@/lib/types";
 import { AddButton } from "../AddButton";
-import { AvatarDetailView } from "./AvatarDetailView";
+import { RightDrawer } from "../RightDrawer";
+import { AvatarDetailView } from "@/components/tabs/AvatarDetailView";
 
-export function AvatarTab() {
-  const [avatars, setAvatars] = useState<AvatarProfile[]>(initialAvatars);
+interface AvatarTabProps {
+  avatars: AvatarProfile[];
+  idleMotions: IdleMotion[];
+  onAvatarsChange: (avatars: AvatarProfile[]) => void;
+  personas: PersonaPrompt[];
+}
+
+export function AvatarTab({ avatars, idleMotions, onAvatarsChange, personas }: AvatarTabProps) {
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -27,16 +33,13 @@ export function AvatarTab() {
 
   function handleAddAvatar() {
     const draft = createDraftAvatar(avatars.length);
-    setAvatars((current) => [...current, draft]);
+    onAvatarsChange([...avatars, draft]);
     setEditingId(draft.id);
   }
 
-  if (editingProfile) {
-    return <AvatarDetailView key={editingProfile.id} profile={editingProfile} onBack={() => setEditingId(null)} />;
-  }
-
   return (
-    <div className="admin-page">
+    <>
+      <div className="admin-page">
       <h1 className="admin-title">Character Center</h1>
 
       <div className="admin-toolbar">
@@ -105,6 +108,22 @@ export function AvatarTab() {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+
+      {editingProfile && (
+        <RightDrawer ariaLabel={`Edit ${editingProfile.name}`} onClose={() => setEditingId(null)}>
+          <AvatarDetailView
+            key={editingProfile.id}
+            onBack={() => setEditingId(null)}
+            onProfileChange={(updated: AvatarProfile) =>
+              onAvatarsChange(avatars.map((avatar) => (avatar.id === updated.id ? updated : avatar)))
+            }
+            profile={editingProfile}
+            idleMotions={idleMotions}
+            personas={personas}
+          />
+        </RightDrawer>
+      )}
+    </>
   );
 }

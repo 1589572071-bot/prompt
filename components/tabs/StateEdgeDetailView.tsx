@@ -16,7 +16,7 @@ export function StateEdgeDetailView({ edge, fromNode, toNode, onBack }: StateEdg
       <div className="row between">
         <div>
           <button className="button" onClick={onBack} type="button">
-            Back to State Orchestration
+            Back to Runtime States
           </button>
           <h1 className="admin-title" style={{ marginTop: 12 }}>
             Edit Transition · {fromNode.name} → {toNode.name}

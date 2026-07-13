@@ -1,0 +1,18 @@
+# Demo Persona Examples
+
+Persona prompts are **pre-stored platform assets**, not inline avatar text and not complete scenario/task prompts.
+
+- **Catalog:** `lib/personaPromptCatalog.ts` (edit in the top-level **Personas** tab)
+- **Avatar binding:** each avatar selects a persona via `personaPromptId` (dropdown in **Characters → Edit**)
+- **Scenario behavior:** session-level rules live in **Base → Strategies**
+- **Task behavior:** intent strategies are selected after user input meets their semantic threshold
+
+## Current catalog
+
+| ID | Name | Used by |
+|----|------|---------|
+| `persona-second-me` | Second Me Companion | Second Me |
+| `persona-serena` | Serena Livestream Host | Serena |
+| `persona-alex-brand` | Alex Brand Presenter | Alex |
+
+Full prompt bodies live in `lib/demoPrompts.ts` and are referenced by the catalog.

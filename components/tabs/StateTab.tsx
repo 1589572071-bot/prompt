@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { bizStrategies, proactiveStrategies, stateMachine } from "@/lib/mockData";
 import { createDraftStateEdge, createDraftStateNode } from "@/lib/createDrafts";
 import { interruptBufferPolicies } from "@/lib/stateOptions";
-import type { StateEdge, StateNode } from "@/lib/types";
+import type { BizStrategy, ProactiveStrategy, StateEdge, StateMachine, StateNode } from "@/lib/types";
 import { AddButton } from "../AddButton";
+import { RightDrawer } from "../RightDrawer";
 import { StateEdgeDetailView } from "./StateEdgeDetailView";
 import { StateNodeDetailView, summarizeStrategies, useStateTypeOptions } from "./StateNodeDetailView";
 
@@ -18,7 +18,14 @@ function getNodeName(nodes: StateNode[], nodeId: string) {
   return nodes.find((node) => node.id === nodeId)?.name ?? nodeId;
 }
 
-export function StateTab() {
+interface StateTabProps {
+  bizStrategies: BizStrategy[];
+  onStateMachineChange: (stateMachine: StateMachine) => void;
+  proactiveStrategies: ProactiveStrategy[];
+  stateMachine: StateMachine;
+}
+
+export function StateTab({ bizStrategies, onStateMachineChange, proactiveStrategies, stateMachine }: StateTabProps) {
   const [nodes, setNodes] = useState<StateNode[]>(stateMachine.nodes);
   const [edges, setEdges] = useState<StateEdge[]>(stateMachine.edges);
   const [search, setSearch] = useState("");
@@ -27,6 +34,30 @@ export function StateTab() {
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
 
   const stateTypeOptions = useStateTypeOptions(nodes, stateMachine.customTypes);
+
+  function commitStateMachine(nextNodes: StateNode[], nextEdges: StateEdge[]) {
+    onStateMachineChange({
+      ...stateMachine,
+      nodes: nextNodes,
+      edges: nextEdges
+    });
+  }
+
+  function updateNodes(updater: (current: StateNode[]) => StateNode[]) {
+    setNodes((current) => {
+      const next = updater(current);
+      commitStateMachine(next, edges);
+      return next;
+    });
+  }
+
+  function updateEdges(updater: (current: StateEdge[]) => StateEdge[]) {
+    setEdges((current) => {
+      const next = updater(current);
+      commitStateMachine(nodes, next);
+      return next;
+    });
+  }
 
   const filteredNodes = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -61,45 +92,22 @@ export function StateTab() {
 
   function handleAddState() {
     const draft = createDraftStateNode(nodes);
-    setNodes((current) => [...current, draft]);
+    updateNodes((current) => [...current, draft]);
     setEditingNodeId(draft.id);
   }
 
   function handleAddTransition() {
     if (!nodes.length) return;
     const draft = createDraftStateEdge(nodes);
-    setEdges((current) => [...current, draft]);
+    updateEdges((current) => [...current, draft]);
     setEditingEdgeId(draft.id);
   }
 
-  if (editingNode) {
-    return (
-      <StateNodeDetailView
-        key={editingNode.id}
-        node={editingNode}
-        onBack={() => setEditingNodeId(null)}
-        stateTypeOptions={stateTypeOptions}
-      />
-    );
-  }
-
-  if (editingEdge && editingEdgeFrom && editingEdgeTo) {
-    return (
-      <StateEdgeDetailView
-        edge={editingEdge}
-        fromNode={editingEdgeFrom}
-        onBack={() => setEditingEdgeId(null)}
-        toNode={editingEdgeTo}
-      />
-    );
-  }
-
   return (
-    <div className="admin-page">
-      <h1 className="admin-title">State Orchestration</h1>
-      <p className="muted" style={{ marginTop: -8 }}>
-        Manage runtime states and transition rules for prompt routing. Machine version {stateMachine.version}.
-      </p>
+    <>
+      <div className="admin-page">
+      <h1 className="admin-title">Runtime States</h1>
+      <p className="muted" style={{ marginTop: -8 }}>Version {stateMachine.version}</p>
 
       <div className="admin-toolbar">
         <input
@@ -118,7 +126,7 @@ export function StateTab() {
               <th>Name</th>
               <th>Type</th>
               <th>Role</th>
-              <th>Strategy Packs</th>
+              <th>Intent Candidates</th>
               <th>Proactive</th>
               <th>Interrupt Policy</th>
               <th>Actions</th>
@@ -155,7 +163,6 @@ export function StateTab() {
 
       <div className="admin-section-header">
         <h2 className="admin-subtitle">Transitions</h2>
-        <p className="muted">Configure when the runtime moves between states, including timeout and interrupt rules.</p>
       </div>
 
       <div className="admin-toolbar">
@@ -200,6 +207,33 @@ export function StateTab() {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+
+      {editingNode && (
+        <RightDrawer ariaLabel={`Edit ${editingNode.name}`} onClose={() => setEditingNodeId(null)}>
+          <StateNodeDetailView
+            bizStrategies={bizStrategies}
+            key={editingNode.id}
+            node={editingNode}
+            onBack={() => setEditingNodeId(null)}
+            onNodeChange={(updated) => updateNodes((current) => current.map((node) => (node.id === updated.id ? updated : node)))}
+            proactiveStrategies={proactiveStrategies}
+            scenarioStrategyIds={stateMachine.scenarioStrategyIds}
+            stateTypeOptions={stateTypeOptions}
+          />
+        </RightDrawer>
+      )}
+
+      {editingEdge && editingEdgeFrom && editingEdgeTo && (
+        <RightDrawer ariaLabel={`Edit transition ${editingEdge.id}`} onClose={() => setEditingEdgeId(null)}>
+          <StateEdgeDetailView
+            edge={editingEdge}
+            fromNode={editingEdgeFrom}
+            onBack={() => setEditingEdgeId(null)}
+            toNode={editingEdgeTo}
+          />
+        </RightDrawer>
+      )}
+    </>
   );
 }
